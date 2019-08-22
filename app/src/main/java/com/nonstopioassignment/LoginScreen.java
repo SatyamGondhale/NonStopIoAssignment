@@ -1,8 +1,13 @@
 package com.nonstopioassignment;
 
+
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -18,25 +23,41 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-public class FacebookActivity extends AppCompatActivity {
+import static android.content.Context.MODE_PRIVATE;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class LoginScreen extends Fragment {
+
 
     private static final String EMAIL = "email";
     LoginButton loginButton;
     CallbackManager callbackManager;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_facebook);
-        loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList(EMAIL));
-        callbackManager = CallbackManager.Factory.create();
-        // If you are using in a fragment, call loginButton.setFragment(this);
+    SharedPreferences prefs;
+    SharedPreferences.Editor edit;
+    public LoginScreen() {
+        // Required empty public constructor
+    }
 
-        // Callback registration
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View v= inflater.inflate(R.layout.login_screen, container, false);
+        prefs = getActivity().getSharedPreferences("appPrefs", MODE_PRIVATE);
+        loginButton = (LoginButton) v.findViewById(R.id.login_button);
+        loginButton.setReadPermissions(Arrays.asList(EMAIL));
+        loginButton.setFragment(this);
+        callbackManager = CallbackManager.Factory.create();
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 AccessToken accessToken = loginResult.getAccessToken();
+                edit=prefs.edit();
+                edit.putString("accesstoken",accessToken.toString());
                 getUserFirstName(accessToken);
                 // App code
             }
@@ -51,15 +72,19 @@ public class FacebookActivity extends AppCompatActivity {
                 // App code
             }
         });
+        return  v;
     }
-
     private void getUserFirstName(AccessToken accessToken) {
         GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
             //OnCompleted is invoked once the GraphRequest is successful
             @Override
             public void onCompleted(JSONObject object, GraphResponse response) {
                 try {
+                    getActivity().finish();
                     String name = object.getString("name");
+                    Intent intent =new Intent(getActivity(),HomeActivity.class);
+                    intent.putExtra("name",name);
+                    startActivity(intent);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -76,7 +101,7 @@ public class FacebookActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
