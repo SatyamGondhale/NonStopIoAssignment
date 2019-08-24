@@ -39,7 +39,7 @@ public class HomeActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(HomeActivity.this,LinearLayoutManager.VERTICAL,false));
         String userName=getIntent().getStringExtra("name");
-        name.setText(userName);
+        name.setText("Hi "+userName);
         setHomeFeed();
 
     }
