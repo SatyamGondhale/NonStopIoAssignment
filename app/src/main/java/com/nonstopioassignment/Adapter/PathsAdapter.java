@@ -3,6 +3,7 @@ package com.nonstopioassignment.Adapter;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,6 +13,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.nonstopioassignment.R;
+import com.nonstopioassignment.SubItemNextNameClick;
+import com.nonstopioassignment.ZoomOutPageTransformer;
 import com.nonstopioassignment.model.Paths;
 import com.nonstopioassignment.model.Subpaths;
 
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 public class PathsAdapter extends RecyclerView.Adapter<PathsAdapter.ViewHolder> {
     private ArrayList<Paths> pathEntries;
     private Context context;
+
 
     public PathsAdapter(ArrayList<Paths> pathEntries,Context context){
         this.pathEntries=pathEntries;
@@ -40,28 +44,14 @@ public class PathsAdapter extends RecyclerView.Adapter<PathsAdapter.ViewHolder> 
         ArrayList<Subpaths>  subpaths=pathEntries.get(position).getSubPaths();
         holder.pathName.setText(singlePath.getPathTitle());
         holder.pathCount.setText(String.valueOf(subpaths.size())+" paths");
-        SubPathsAdapter adapter=new SubPathsAdapter(subpaths,context);
-        holder.subPathsList.setHasFixedSize(true);
-        holder.subPathsList.setLayoutManager(new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false));
-        holder.subPathsList.setAdapter(adapter);
-        adapter.setOnItemClickListener(new SubPathsAdapter.OnItemClickListener() {
+        PagerAdapter adapter=new PagerAdapter(subpaths, context, new SubItemNextNameClick() {
             @Override
-            public void scrollToNext(int position) {
-                holder.subPathsList.scrollToPosition(position+1);
+            public void goToNext(int position) {
+                holder.subPathsList.setCurrentItem(position+1);
             }
         });
-        /*holder.subPathsList.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dx > 0) {
-                    //System.out.println("Scrolled Right");
-                    holder.subPathsList.smoothScrollToPosition(position+1);
-                } else if (dx < 0) {
-                    //System.out.println("Scrolled Left");
-                    holder.subPathsList.smoothScrollToPosition(position-1);
-                }
-            }
-        });*/
+        holder.subPathsList.setAdapter(adapter);
+        holder.subPathsList.setPageTransformer(true,new ZoomOutPageTransformer());
     }
 
     @Override
@@ -71,7 +61,7 @@ public class PathsAdapter extends RecyclerView.Adapter<PathsAdapter.ViewHolder> 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView pathName,pathCount;
-        RecyclerView subPathsList;
+        ViewPager subPathsList;
         public ViewHolder(View itemView) {
             super(itemView);
             pathName=itemView.findViewById(R.id.pathName);
